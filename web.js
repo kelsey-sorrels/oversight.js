@@ -13,13 +13,16 @@ app.get('/page', function(request, response) {
         var imagePath = './tmp/images';
         var dataPath = './tmp/data/' + requestId + '.json';
         // Create an empty data file so that we can watch when it changes.
-        sys.exec('touch ' + dataPath + '.lock');
+		var dataLock = dataPath + '.lock';
+		console.log('creating lock file: ' + dataLock);
+        sys.exec('touch ' + dataLock);
 		var size = 0;
-		fs.watchFile(dataPath, {interval: 200}, function (curr, prev) {
+		fs.watchFile(dataLock, {interval: 200}, function (curr, prev) {
+			console.log('Lock file changed. Reading data from: ' + dataPath);
 	        // parse metadata into object
 	        var data = JSON.parse(fs.readFileSync(dataPath));
             response.send(data);
-			fs.unwatchFile(dataPath);
+			fs.unwatchFile(dataLock);
         });
 	    // Call bin/phantomjs ...
         var cmdLine = ['phantomjs', './src/phantom.js/save-img-and-json.js', address, imagePath, requestId, dataPath].join(' '); 
